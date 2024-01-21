@@ -7,12 +7,24 @@ import initialize
 import pandas as pd
 import time
 
-def sidebar() :
-    uploaded_file = st.sidebar.file_uploader('Upload a tabular data')
+def wiki_section() :
+    with st.expander('Want to learn more?') :
+        st.write('Fuck off!')
+
+
+
+
+def data_section() :
+    uploaded_file = st.file_uploader('Upload a tabular data')
+    
+    data_prep_enabled = st.toggle('Data preparation', value=True)
+    analysis_enabled = st.toggle('Data analysis', value=True)
+    
+    predicting_enabled = st.toggle('Predicting (Premium)', value=False, disabled=True)
 
     
 
-def chat() :
+def chat_section() :
     # Initializing chat #
     if 'chat' not in state:
         state['chat'] = [{
@@ -59,12 +71,21 @@ def chat() :
         st.rerun()
 
 
+
+
 if __name__ == '__main__':
+    # Initializing session variables and basic functions #
     initialize.init()
 
+    # Showing the title #
     st.title("💬 Mono-Chat")
-    st.caption('🚀 A chatbot powered by LLMs and fine-tuned with your data!')
 
-    sidebar()
-    chat()
+    # Showing the wiki section #
+    wiki_section()
+
+    # Showing the Data management section #
+    with st.sidebar:
+        data_section()
     
+    # Showing the chat section #
+    chat_section()
