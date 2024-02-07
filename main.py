@@ -3,38 +3,43 @@ from streamlit import session_state as state
 
 import llm
 import initialize
+import utils
 
 import pandas as pd
 import time
 
+
 def wiki_section() :
     with st.expander('Want to learn more?') :
-        st.write('Fuck off!')
-
+        st.write('Mono-Chat powered by Mono-Analysis')
+        st.write('v1.0.0')
 
 
 
 def data_section() :
-    uploaded_file = st.file_uploader('Upload a tabular data')
+    # Getting the data #
+    utils.read_file()
     
     data_prep_enabled = st.toggle('Data preparation', value=True)
     analysis_enabled = st.toggle('Data analysis', value=True)
     
     predicting_enabled = st.toggle('Predicting (Premium)', value=False, disabled=True)
 
-    
+
 
 def chat_section() :
     # Initializing chat #
     if 'chat' not in state:
         state['chat'] = [{
             'role': 'assistant',
-            'content': 'Hey! How can I help you?'
+            'content': ['Hey!','How can I help you?']
         }]
 
     # Displaying all the messages #
     for msg in state['chat']:
-        st.chat_message(msg['role']).write(msg['content'])
+        with st.chat_message(msg['role']) :
+            for content in msg['content'] :
+                st.write(content)
 
     # Input box #
     prompt = st.chat_input('Ask us anything!')
@@ -44,7 +49,7 @@ def chat_section() :
         # Posting user's prompt #
         state['chat'].append({
             'role': 'user',
-            'content': prompt
+            'content': [prompt]
         })
 
         # Posting user's prompt #
@@ -67,7 +72,6 @@ def chat_section() :
         })
 
         # Reloading the session to view new messages #
-        state['prompt_posted'] = False
         st.rerun()
 
 

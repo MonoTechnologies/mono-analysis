@@ -10,7 +10,6 @@ def init() :
 
 
 
-
 def main_styles() :
 	# Adding some style #
 	st.set_page_config(page_title='Mono-Analysis', page_icon='🏛', layout = state['layout'])

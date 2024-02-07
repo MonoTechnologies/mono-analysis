@@ -4,11 +4,11 @@ import time
 
 def get_response(prompt) :
     time.sleep(2)
-    return "Hello!!"
+    return ["Hello!!"]
 
 
 def interpret(prompt) :
-    if prompt.lower() == 'clear' :
+    if prompt[0].lower() == 'clear' :
         state['chat'] = [state['chat'][0]]
         st.rerun()
 
