@@ -2,8 +2,6 @@ import streamlit as st
 from streamlit import session_state as state
 
 import initialize
-import llm
-
 from utils import *
 from landing import *
 from data_prep import *
@@ -17,23 +15,23 @@ def show_sidebar() :
     ############################################
     buttons = {}
 
-    buttons['landing'] = st.button('Main Page')
+    buttons['landing'] = st.button('Main Page', on_click=set_to_wide)
     hr()
-    buttons['data'] = st.button('Your Data')
-    buttons['analysis'] = st.button('Analysis')
-    buttons['chat'] = st.button('Chat-Assistant')
+    buttons['data'] = st.button('Your Data', on_click=set_to_standard)
+    buttons['analysis'] = st.button('Analysis',on_click=set_to_wide)
+    buttons['chat'] = st.button('Chat-Assistant',on_click=set_to_standard)
 
     ############################################
 
     for button in buttons :
         if buttons[button] == True and state['current_page'] != button :
             state['current_page'] = button
-            st.experimental_rerun()
+            st.rerun()
 
     # Setting do default #
     if state['current_page'] == False :
         state['current_page'] = 'landing'
-        st.experimental_rerun()
+        st.rerun()
 
 
 

@@ -7,6 +7,7 @@ def data_section() :
     # Getting the data #
     read_file()
     
+    # Asking for options #
     data_prep_enabled = st.toggle('Data preparation', value=True)
     analysis_enabled = st.toggle('Data analysis', value=True)
     
