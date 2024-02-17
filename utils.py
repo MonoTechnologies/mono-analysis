@@ -8,16 +8,15 @@ import datetime
 
 def read_file() :
     # Uploading file button #
-    uploaded_file = st.file_uploader('Upload a tabular data')
+    uploaded_file = st.file_uploader('Upload tabular data')
 
-    # # Showing it to the user #
+    # Showing it to the user #
     # if uploaded_file != None and 'original_df' not in state :
-    #     # Converting it to Pandas DataFrame #
-    #     # original_df = pd.read_excel(uploaded_file) # Experimental
+        # Converting it to Pandas DataFrame #
+        # original_df = pd.read_excel(uploaded_file) # Experimental
     
-    if 'original_df' not in state :
-        state['original_df'] = pd.read_excel('data.xlsx')
-
+    state['original_df'] = pd.read_excel('data.xlsx')
+    
 
 
 ###############################################################

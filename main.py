@@ -17,7 +17,7 @@ def show_sidebar() :
 
     buttons['landing'] = st.button('Main Page', on_click=set_to_wide)
     hr()
-    buttons['data'] = st.button('Your Data', on_click=set_to_standard)
+    buttons['data'] = st.button('Your Data', on_click=set_to_wide)
     buttons['analysis'] = st.button('Analysis',on_click=set_to_wide)
     buttons['chat'] = st.button('Chat-Assistant',on_click=set_to_standard)
 

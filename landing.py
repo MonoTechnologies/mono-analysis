@@ -83,7 +83,6 @@ def quick_example() :
         from utils import upload_file, preprocess_file
         import chat
         import llm
-        
 
         # Reading uploaded file #
         df = upload_file()
