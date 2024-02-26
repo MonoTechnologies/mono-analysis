@@ -11,15 +11,7 @@ def wiki() :
     # Showing the title #
     st.title("💬 Mono-AI")
     hr()
-
-    # st.markdown('<h3 align=center>Analyze your data via simple requests🔎</h3>',unsafe_allow_html=True)
-    # st.markdown('<h3 align=center>----</h3>',unsafe_allow_html=True)
-    # st.markdown('<h3 align=center>Train predictive AI models 🤖</h3>',unsafe_allow_html=True)
-
-
-    # Define your text
-    text = "This is my text inside a rectangle."
-
+    
     # Define the CSS styling for the rectangle
     style = """
         <style>
@@ -118,22 +110,7 @@ def quick_example() :
 ###########################################################################################
 
 
-def main_page() :
+def home_section() :
     wiki()
     hr()
     quick_example()
-
-
-    # progress_text = "Operation in progress. Please wait."
-    # my_bar = st.progress(0, text=progress_text)
-
-    # for percent_complete in range(100):
-    #     time.sleep(0.01)
-    #     my_bar.progress(percent_complete + 1, text=progress_text)
-    # time.sleep(1)
-    # my_bar.empty()
-
-    # # Showing Additional information #
-    # with st.expander('Want to learn more?') :
-    #     st.write('Mono-Chat powered by Mono-Analysis')
-    #     st.write('v1.0.0')

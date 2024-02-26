@@ -4,11 +4,11 @@ import numpy as np
 import streamlit as st
 from streamlit import session_state as state
 
-import datetime
+from datetime import datetime
 
 def read_file() :
     # Uploading file button #
-    uploaded_file = st.file_uploader('Upload tabular data')
+    uploaded_file = st.file_uploader('')
 
     # Showing it to the user #
     # if uploaded_file != None and 'original_df' not in state :
@@ -16,7 +16,6 @@ def read_file() :
         # original_df = pd.read_excel(uploaded_file) # Experimental
     
     state['original_df'] = pd.read_excel('data.xlsx')
-    
 
 
 ###############################################################
@@ -30,7 +29,7 @@ def latest( data ) :
     data['время'] = pd.to_datetime(data['время'])
     data = data.sort_values('время',ascending=False)
 
-    return data
+    return data 
 
 def current_time() :
     return pd.to_datetime( datetime.now() ).round('1s')
@@ -52,3 +51,72 @@ def set_to_wide() :
 
 def set_to_standard() :
 	state['layout'] = 'centered'
+
+################################################################
+
+def arrange( df ) :
+	st = set( df.columns )
+	return st
+
+def rearrange( df, collection_id ) :
+	# Login queries #
+	if collection_id == 'login_queries' :
+		return df[ ['id','type', 'time', 'username'] ]
+
+	# Users DB #
+	if collection_id == 'users_db' :
+		return df[ ['id','username','password','type'] ]
+
+################################################################
+# Firestore Functions #
+def get_docs( collection_id ) :
+
+	try :
+		docs =  state[collection_id].stream()
+		items = list(map(lambda x: {**x.to_dict(), 'id': x.id}, docs))
+		data = pd.DataFrame( items )
+
+		data['id'] = data['id'].astype( 'int' )
+		data = data.sort_values('id',ascending=False)
+		data['id'] = data['id'].astype('str')
+
+		data.index = range( len(data) )
+		data = rearrange(data,collection_id)
+
+		return data
+
+	except :
+		return pd.DataFrame()
+
+
+def get_doc( collection_id, document_id ) :
+	try :
+		return state[collection_id].document(document_id ).get().to_dict()
+
+	except :
+		return state[collection_id]
+
+
+def new_doc_id ( collection_id ) :
+	try : mx = get_docs( collection_id )['id'].astype('int64').max()
+	except : mx = 0
+
+	return str( int(mx) + 1 )
+
+
+def change_doc( collection_id, document_id, dict_values ) :
+	state[collection_id].document( document_id ).set( dict_values )
+
+
+def delete_doc( collection_id, document_id ) :
+	state[collection_id].document( document_id ).delete()
+
+
+def reset_( collection_id ) :
+	docs = get_docs( collection_id )
+
+	for i in docs['id'] :
+		if i == '-1' :
+			continue
+		print( i )
+		delete_doc( collection_id, i )
