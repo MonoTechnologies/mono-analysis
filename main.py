@@ -51,8 +51,8 @@ if __name__ == '__main__':
     initialize.init()
 
     # Login Page #
-    login.check_register()
-    login.check_login()
+    # login.check_register()
+    # login.check_login()
 
     # st.write( get_docs('users_db') )
 

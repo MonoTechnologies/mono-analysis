@@ -4,6 +4,13 @@ from streamlit import session_state as state
 from utils import *
 
 ###########################################################################################
+
+def home_section() :
+    wiki()
+    hr()
+    quick_example()
+    
+###########################################################################################
 def wiki() :
     # Some winter vibes #
     # st.snow()
@@ -108,9 +115,3 @@ def quick_example() :
             st.write('According to your data, it is Paris')
 
 ###########################################################################################
-
-
-def home_section() :
-    wiki()
-    hr()
-    quick_example()

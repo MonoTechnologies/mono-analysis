@@ -15,7 +15,9 @@ def read_file() :
         # Converting it to Pandas DataFrame #
         # original_df = pd.read_excel(uploaded_file) # Experimental
     
-    state['original_df'] = pd.read_excel('data.xlsx')
+    if 'original_df' not in state :
+        state['original_df'] = pd.read_excel('data.xlsx')
+        state['preprocessed_df'] = state['original_df'].copy().reset_index(drop=True)
 
 
 ###############################################################
@@ -36,10 +38,11 @@ def current_time() :
 
 
 ###############################################################
+def space():
+    st.write('')
 
 def hr() :
     st.markdown("<hr>", unsafe_allow_html=True)
-
 
 def side_hr() :
     st.sidebar.markdown("<hr>", unsafe_allow_html=True)
