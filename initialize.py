@@ -12,10 +12,16 @@ def init(restart=False) :
 	####################################
 	# Creating initial state variables #
     bool_states = ['logged_in', 'register', 'username','user_found','user_type','current_page']
-    
+    int_states = ['editor_key_datatypes']    
+
     for _ in bool_states :
         if _ not in state :
             state[_] = False
+
+    for _ in int_states :
+        if _ not in state :
+            state[_] = 0
+
 
     if 'layout' not in state :
         state['layout'] = 'centered'
