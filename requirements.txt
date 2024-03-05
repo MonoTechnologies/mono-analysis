@@ -1,6 +1,7 @@
 streamlit>=1.28
 duckduckgo-search
 streamlit-feedback
+streamlit-extras
 streamlit-chat
 streamlit-option-menu
 google-cloud-firestore

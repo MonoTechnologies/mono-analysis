@@ -28,8 +28,11 @@ def indexed( data ) :
     return data_copy
 
 def latest( data ) :
-    data['время'] = pd.to_datetime(data['время'])
-    data = data.sort_values('время',ascending=False)
+    try :
+        data[state['base_date']] = pd.to_datetime(data['base_date'])
+        data = data.sort_values('base_date',ascending=False)
+    except :
+        pass
 
     return data 
 

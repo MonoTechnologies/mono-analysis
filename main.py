@@ -1,17 +1,17 @@
+import pandas as pd
+import time
+
 import streamlit as st
 from streamlit import session_state as state
 from streamlit_option_menu import option_menu
 
 import initialize
 import login
+import landing
+import data_prep
+import chat
+import analysis
 from utils import *
-from landing import *
-from data_prep import *
-from chat import *
-
-import pandas as pd
-import time
-
 
 
 def show_sidebar() :
@@ -19,18 +19,19 @@ def show_sidebar() :
     # Option Menu docs : https://github.com/victoryhb/streamlit-option-menu
     # Icon store : https://icons.getbootstrap.com/
 
-    button = option_menu(
+    side_button = option_menu(
         menu_title = 'Mono-AI',
         options = ["Home", "Data", "Analysis", 'AI Assistant', 'Settings'],
         icons = ['house', 'cloud-plus', "graph-up", 'robot', 'gear'],
         key = 'main_menu',
-        orientation="vertical"
+        orientation="vertical",
+        on_change = initialize.width_settings
+
     )
     ############################################
 
-    if state['current_page'] != button :
-        state['current_page'] = button
-        initialize.width_settings(button)
+    if state['current_page'] != side_button :
+        state['current_page'] = side_button
         st.rerun()
 
 
@@ -38,11 +39,13 @@ def show_sidebar() :
 def show_pages() :
     ############################################
     if state['current_page'] == 'Home' :
-        home_section()
+        landing.home_section()
     elif state['current_page'] == 'Data' :
-        data_section()
+        data_prep.data_section()
+    elif state['current_page'] == 'Analysis' :
+        analysis.analysis_section()
     elif state['current_page'] == 'AI Assistant' :
-        chat_section()
+        chat.chat_section()
 
 
 
@@ -50,11 +53,9 @@ if __name__ == '__main__':
     # Initializing session variables and basic functions #
     initialize.init()
 
-    # Login Page #
+    # # Login Page #
     # login.check_register()
     # login.check_login()
-
-    # st.write( get_docs('users_db') )
 
     # Displaying Menu #
     with st.sidebar :

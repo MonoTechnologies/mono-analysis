@@ -26,6 +26,7 @@ def data_section() -> None:
             hr()
             st.subheader('Column info:')
             st.write( state['original_df'].describe().drop(['25%','50%','75%']).T )
+            st.write( state['original_df'].dtypes )
 
     #################################################################################
     # Asking for options #
@@ -85,7 +86,8 @@ def data_section() -> None:
             'Date&Time': date_series
         })
         
-        st.write(cols_view_df)
+        st.subheader('Column types:')
+        st.dataframe(cols_view_df, use_container_width=True,hide_index=True)
 
 
 ########################################################################################################################
@@ -233,7 +235,7 @@ def perform_column_typization() -> None :
         types_mp = {}
         # Finding default numerical features #
         for col in state['preprocessed_df'] :
-            if state['preprocessed_df'][col].dtype in ['int','float'] :
+            if state['preprocessed_df'][col].dtype in ['int64','float64'] :
                 types_mp[col] = 'Numbers 🎲'
         
         # Finding default categorical features #
@@ -297,9 +299,23 @@ def perform_column_typization() -> None :
             state['preprocessed_df'].rename( new_colnames_mp, axis=1, inplace=True )
 
             # Changing Data Types #
+            convert_mp = {'Numbers 🎲':'int64', 'Categories 🚦':'object', 'Dates 🗓':'datetime64'}
             new_datatypes_mp = {}
             for i in edited_df.index :
-                new_datatypes_mp[ edited_df['Column name'] ] = edited_df['Data type'].map()
+                new_datatypes_mp[ edited_df['Column name'][i] ] = convert_mp[ edited_df['Data type'][i] ]
+
+            # st.write(new_datatypes_mp)
+            for col, new_type in new_datatypes_mp.items() :
+                if state['preprocessed_df'][col].dtype not in ['int64','float64'] and new_type == 'int64' :
+                    state['preprocessed_df'][col] = state['preprocessed_df'][col].astype('int64')
+
+                elif state['preprocessed_df'][col].dtype not in ['object'] and new_type == 'object' :
+                    state['preprocessed_df'][col] = state['preprocessed_df'][col].astype('str')
+
+                elif state['preprocessed_df'][col].dtype not in ['datetime64', 'datetime64[ns]'] and new_type == 'datetime64' :
+                    state['preprocessed_df'][col] = state['preprocessed_df'][col].astype('datetime64')
 
 
+            st.success('Successfully changed data types!')
+            time.sleep(1.5)
             st.rerun()
