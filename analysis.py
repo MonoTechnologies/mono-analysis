@@ -34,9 +34,11 @@ def analysis_section() -> None :
 	hr()
 	if analysis_button == 'General' :
 		perform_general_analysis()
+	elif analysis_button == 'Manual charts' :
+		perform_manual_analysis()
 	elif analysis_button == 'Pandas Profiling' :
 		perform_pandas_profiling()
-
+	
 
 ################################################################
 ################################################################
@@ -89,13 +91,15 @@ def perform_general_analysis() -> None :
 ################################################################
 ################################################################
 def perform_pandas_profiling() -> None :
-
 	st.info('Pandas Profiling is a detailed explanation of your Data. Thus it can take some time to generate.')
 	generate_profiling_button = st.button('Generate Pandas Profiling')
 
-	if 'pandas_profiling' in state :
-		state['pandas_profiling']
-
 	if generate_profiling_button :
 		pr = state['filtered_df'].profile_report()
-		# state['pandas_profiling'] = st_profile_report(pr)
+		st_profile_report(pr)
+
+
+################################################################
+################################################################
+def perform_manual_analysis() -> None :
+	
