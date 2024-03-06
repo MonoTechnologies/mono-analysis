@@ -6,6 +6,10 @@ from streamlit import session_state as state
 from streamlit_option_menu import option_menu
 from streamlit_extras.dataframe_explorer import dataframe_explorer
 
+import pandas_profiling
+from pandas_profiling import ProfileReport
+from streamlit_pandas_profiling import st_profile_report
+
 from utils import *
 
 ################################################################
@@ -30,6 +34,8 @@ def analysis_section() -> None :
 	hr()
 	if analysis_button == 'General' :
 		perform_general_analysis()
+	elif analysis_button == 'Pandas Profiling' :
+		perform_pandas_profiling()
 
 
 ################################################################
@@ -78,3 +84,18 @@ def perform_general_analysis() -> None :
     hr()
     st.subheader('Null values (Empty cells)')
     st.table( state['filtered_df'].isna().sum() )
+
+
+################################################################
+################################################################
+def perform_pandas_profiling() -> None :
+
+	st.info('Pandas Profiling is a detailed explanation of your Data. Thus it can take some time to generate.')
+	generate_profiling_button = st.button('Generate Pandas Profiling')
+
+	if 'pandas_profiling' in state :
+		state['pandas_profiling']
+
+	if generate_profiling_button :
+		pr = state['filtered_df'].profile_report()
+		# state['pandas_profiling'] = st_profile_report(pr)
