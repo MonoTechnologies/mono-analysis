@@ -41,8 +41,9 @@ def current_time() :
 
 
 ###############################################################
-def space():
-    st.write('')
+def space(num = 1):
+	for _ in range(num) :
+		st.write('')
 
 def hr() :
     st.markdown("<hr>", unsafe_allow_html=True)

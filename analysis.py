@@ -102,4 +102,51 @@ def perform_pandas_profiling() -> None :
 ################################################################
 ################################################################
 def perform_manual_analysis() -> None :
-	
+    """
+    Chart views state:
+    Tuple -> (View Num, Type of Chart, Column Name(s) for chart)
+    """
+
+    ###########################
+    # Adding a new chart-view #
+    new_view = st.button(
+        label='➕ Add a view'
+    )
+    space(2)
+
+    if new_view :
+        state['chart_views'].append( ( len(state['chart_views'])+1, None, [] ) )
+
+
+    ##################################
+    # Showing all the View expanders #
+    for chart_view in state['chart_views'] :
+        with st.expander( f"Chart view Num. {chart_view[0]}",expanded=True ) :
+
+            #######################
+            # Asking plot details #
+            with st.columns(5)[0] :
+                chart_type = st.selectbox(
+                    label='Chart type:',
+                    options=['Bar chart', 'Histogram', 'KDE plot'],
+                    key='select_chart'+str(chart_view[0])
+                )
+            ######################
+            # Generating a chart #
+            cols = st.columns(6)
+            with cols[0] :
+                st.button('Generate a chart', key = 'generate'+str(chart_view[0]))
+            ################## 
+            # Deleting a view
+            with cols[1] :
+                delete_view = st.button('Delete view', key='delete'+str(chart_view[0]))
+            if delete_view :
+                # Deleting the current view #
+                del_pos = chart_view[0]-1
+                del state['chart_views'][del_pos]
+
+                # Resetting chart_views indexes #
+                for i in range( len(state['chart_views']) ) :
+                    state['chart_views'][i] = (i+1, state['chart_views'][i][1], state['chart_views'][i][2] )
+
+                st.rerun()
