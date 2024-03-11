@@ -35,7 +35,7 @@ def analysis_section() -> None :
 	if analysis_button == 'General' :
 		perform_general_analysis()
 	elif analysis_button == 'Manual charts' :
-		perform_manual_analysis()
+		Manual_analysis()
 	elif analysis_button == 'Pandas Profiling' :
 		perform_pandas_profiling()
 	
@@ -101,52 +101,169 @@ def perform_pandas_profiling() -> None :
 
 ################################################################
 ################################################################
-def perform_manual_analysis() -> None :
-    """
-    Chart views state:
-    Tuple -> (View Num, Type of Chart, Column Name(s) for chart)
-    """
 
-    ###########################
-    # Adding a new chart-view #
-    new_view = st.button(
-        label='➕ Add a view'
-    )
-    space(2)
+class Manual_analysis :
+    ####################################################################################
+    def __init__(self) :
+        """
+        Chart views -> Tuple -> (View's Num, Type of Chart, Column Name(s) for chart)
+        """
+        ###########################
+        # Adding a new chart-view #
+        self.add_view()
 
-    if new_view :
-        state['chart_views'].append( ( len(state['chart_views'])+1, None, [] ) )
+        ##################################
+        # Showing all the View expanders #
+        for chart_view in state['chart_views'] :
+            self.current_view = chart_view[0]
+            
+            with st.expander( f"Chart view Num. {self.current_view}", expanded=False ) :
+                ###########################
+                # Input -> features to plot #
+                hr()
+                self.chart_features = self.input_chart_features()
+                
+                #####################
+                # Input -> chart type #
+                hr()
+                self.chart_type = self.input_chart_type()
+                
+                ######################
+                # Generating buttons #
+                hr()
+                self.view_buttons()
 
 
-    ##################################
-    # Showing all the View expanders #
-    for chart_view in state['chart_views'] :
-        with st.expander( f"Chart view Num. {chart_view[0]}",expanded=True ) :
+    ####################################################################################
+    def add_view( self ) -> None :
+        '''
+        A sub-function for adding a new view
+        '''
+        new_view = st.button('➕ Add a view')
+        space(2)
+        if new_view :
+            state['chart_views'].append( ( len(state['chart_views'])+1, None, [] ) )
 
-            #######################
-            # Asking plot details #
-            with st.columns(5)[0] :
-                chart_type = st.selectbox(
-                    label='Chart type:',
-                    options=['Bar chart', 'Histogram', 'KDE plot'],
-                    key='select_chart'+str(chart_view[0])
-                )
-            ######################
-            # Generating a chart #
-            cols = st.columns(6)
-            with cols[0] :
-                st.button('Generate a chart', key = 'generate'+str(chart_view[0]))
-            ################## 
-            # Deleting a view
-            with cols[1] :
-                delete_view = st.button('Delete view', key='delete'+str(chart_view[0]))
-            if delete_view :
-                # Deleting the current view #
-                del_pos = chart_view[0]-1
-                del state['chart_views'][del_pos]
 
-                # Resetting chart_views indexes #
-                for i in range( len(state['chart_views']) ) :
-                    state['chart_views'][i] = (i+1, state['chart_views'][i][1], state['chart_views'][i][2] )
+    ####################################################################################
+    def input_chart_features( self ) -> list :
+        '''
+        A sub-function to input column names to plot
+        '''
 
-                st.rerun()
+        #########################################
+        # Asking the number of features to plot #
+        feature_nums = st.radio(
+            label='Choose the number of columns for the chart',
+            options=['One column', 'Two columns', 'Three columns'],
+            horizontal=True,
+            key=self.current_view
+        )
+        ###################################
+        # Asking for the features to plot #
+        chart_features = []
+        feat_cols = st.columns(3)
+
+        if feature_nums in ['One column','Two columns', 'Three columns'] :
+            with feat_cols[0] :
+                col1 = st.selectbox('Column 1',options=state['filtered_df'].columns, key='col_1'+str(self.current_view) )
+                chart_features.append(col1)
+        
+        if feature_nums in ['Two columns','Three columns'] :
+            with feat_cols[1] :
+                col2 = st.selectbox('Column 2',options=state['filtered_df'].columns, key='col_2'+str(self.current_view) )
+                chart_features.append(col2)
+            
+        if feature_nums == 'Three columns' :
+            with feat_cols[2] :
+                col3 = st.selectbox('Column 3',options=state['filtered_df'].columns, key='col_3'+str(self.current_view) )
+                chart_features.append(col3)
+            
+        return chart_features
+    
+
+    ####################################################################################
+    def input_chart_type(self) :
+        '''
+        A sub-function for selecting chart type
+        '''
+
+        #######################################
+        # Finding data types of chart columns #
+        numeric_cols, categorical_cols, date_cols = 0,0,0
+        for col in self.chart_features :
+            if state['filtered_df'][col].dtype in ['int','float'] :
+                numeric_cols += 1
+            elif state['filtered_df'][col].dtype in ['str', 'object'] :
+                categorical_cols += 1
+            elif state['filtered_df'][col].dtype in ['datetime64','datetime64[ns]'] :
+                date_cols += 1
+        
+        ##############################################################
+        # Selecting possible chart options based on column datatypes #
+        if numeric_cols == 1 and categorical_cols == 0 and date_cols == 0:
+            possible_chart_options = [ 'Histogram', 'Box Plot' ]
+        
+        elif numeric_cols == 0 and categorical_cols == 1 and date_cols == 0 :
+            possible_chart_options = ['Bar Chart', 'Pie Chart']
+
+        elif numeric_cols == 2 and categorical_cols == 0 and date_cols == 0 :
+            possible_chart_options = ['Scatter Plot']
+        
+        elif numeric_cols == 0 and categorical_cols == 2 and date_cols == 0 :
+            possible_chart_options = ['Stacked Bar Chart']
+
+        #####################################
+        # Invalid Column types for plotting #
+        else :
+            if numeric_cols and categorical_cols and date_cols :
+                st.warning( f'Sorry, currently we do not provide charts with {numeric_cols} Numeric, {categorical_cols} Categorical, and {date_cols} DateTime features' )
+            elif numeric_cols and categorical_cols:
+                st.warning( f'Sorry, currently we do not provide charts with {numeric_cols} Numeric, {categorical_cols} Categorical features' )
+            elif numeric_cols and date_cols :
+                st.warning( f'Sorry, currently we do not provide charts with {numeric_cols} Numeric and {date_cols} DateTime features' )
+            elif categorical_cols and date_cols :
+                st.warning( f'Sorry, currently we do not provide charts with {categorical_cols} Categorical and {date_cols} DateTime features' )
+            elif numeric_cols :
+                st.warning( f'Sorry, currently we do not provide charts with {numeric_cols} Numeric features' )
+            elif categorical_cols :
+                st.warning( f'Sorry, currently we do not provide charts with {categorical_cols} Categorical features' )
+            else :
+                st.warning( f'Sorry, currently we do not provide charts with {date_cols} DateTime features' )
+            
+            st.stop()
+
+        ################################
+        # input -> Choosing chart type #
+        with st.columns(5)[0] :
+            chart_type = st.selectbox(
+                label = 'Chart type:',
+                options = possible_chart_options,
+                key = 'select_chart'+str(self.current_view)
+            )
+        
+        return chart_type
+    
+
+    ####################################################################################
+    def view_buttons(self) :
+        ######################
+        # Generating a chart #
+        cols = st.columns(6)
+        with cols[0] :
+            st.button('Generate a chart', key = 'generate'+str(self.current_view))
+
+        ###################
+        # Deleting a view #
+        with cols[1] :
+            delete_view = st.button('Delete view', key='delete'+str(self.current_view))
+        if delete_view :
+            # Deleting the current view #
+            del_pos = self.current_view-1
+            del state['chart_views'][del_pos]
+
+            # Resetting chart_views indexes #
+            for i in range( len(state['chart_views']) ) :
+                state['chart_views'][i] = (i+1, state['chart_views'][i][1], state['chart_views'][i][2] )
+
+            st.rerun()
