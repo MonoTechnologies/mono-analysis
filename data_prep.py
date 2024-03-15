@@ -1,5 +1,8 @@
 import streamlit as st
 from streamlit import session_state as state
+from streamlit_option_menu import option_menu
+from streamlit_extras.dataframe_explorer import dataframe_explorer
+
 import time
 import pandas as pd
 
@@ -7,152 +10,86 @@ from utils import *
 
 ########################################################################################################################
 ########################################################################################################################
-def data_section() -> None:
+def start() -> None:
     st.title('Data Factory')
-    #################################################################################
-    # Uploading data and showing basic info #
-    st.divider()
-    # st.subheader('Data Uploading')
 
+    # Choosing step #
+    data_prep_step = option_menu(
+        menu_title = None,
+        options = ["Upload", "General processing", "Column Types"],
+        icons = ['bar-chart-fill', 'search', "clipboard-data"],
+        key = 'data_prep',
+        orientation="horizontal"
+    )
+    hr()
+    if data_prep_step == 'Upload' :
+        upload_data()
+    elif data_prep_step == 'General processing' :
+        general_processing()
+    elif data_prep_step == 'Column Types' :
+        perform_column_typization()
+
+    space(4)
+    show_preprocessed()
+
+
+########################################################################################################################
+########################################################################################################################
+
+def upload_data() -> None :
     # Data Uploader #
     read_file()
     
     # Data Info #
     if 'original_df' in state :
-        with st.expander('Uploaded data ✅') :
-            hr()
-            st.subheader('Overview:')
-            st.write(state['original_df'].head(200))
-            hr()
-            st.subheader('Column info:')
-            st.write( state['original_df'].describe().drop(['25%','50%','75%']).T )
-            st.write( state['original_df'].dtypes )
-
-    #################################################################################
-    # Asking for options #
-    st.divider()
-    st.subheader('Preprocessing')
-
-    column_typization = st.toggle('Column typization', value=True)
-    general_processing = st.toggle('General processing', value=True)
-
-    ##################################################################################
-    # Column types module #
-    if column_typization and 'original_df' in state :
         hr()
-        perform_column_typization()
+        st.subheader('Uploaded Dataset ✅')
+        st.dataframe(state['original_df'].head(200), use_container_width=True)
 
-    ##################################################################################
-    # General processing module #
-    if general_processing and 'original_df' in state :
+        # Data description #
         hr()
-        perform_general_processing()
+        st.subheader('Data description:')
 
-    # Printing out the preprocessed dataframe #
-    if 'preprocessed_df' in state :
-        # Showing the new preprocessed data #
-        hr()
-        st.subheader(':rainbow[Preprocessed data:]')
-        st.write(state['preprocessed_df'].head(200))
+        st.write('Numeric Columns:')
+        st.dataframe( state['original_df'].describe().drop(['25%','50%','75%']).T, use_container_width=True)
 
-        # Showing the general info about the preprocessing #
-        if 'base_date' in state :
-            hr()
-            base_date = state['base_date']
-            st.info(f'Base date column: {base_date}')
-
-        # Showing data types #
-        num_cols, cat_cols, date_cols = [], [], []
-        for col in state['preprocessed_df'].columns :
-            if state['preprocessed_df'][col].dtype in ['int','float'] :
-                num_cols.append(col)
-            elif state['preprocessed_df'][col].dtype in ['str', 'object'] :
-                cat_cols.append(col)
-            elif state['preprocessed_df'][col].dtype in ['datetime64','datetime64[ns]'] :
-                date_cols.append(col)
-
-        # Find the maximum length among the arrays
-        max_length = max(len(num_cols), len(cat_cols), len(date_cols))
-
-        # Create series of equal length with NaN values where necessary
-        num_series = pd.Series(num_cols + [np.nan] * (max_length - len(num_cols)))
-        cat_series = pd.Series(cat_cols + [np.nan] * (max_length - len(cat_cols)))
-        date_series = pd.Series(date_cols + [np.nan] * (max_length - len(date_cols)))
-
-        # Create the DataFrame
-        cols_view_df = pd.DataFrame(data={
-            'Numerical': num_series,
-            'Categorical': cat_series,
-            'Date&Time': date_series
-        })
-        
-        st.subheader('Column types:')
-        st.dataframe(cols_view_df, use_container_width=True,hide_index=True)
+        st.write('Categorical Columns:')
+        st.dataframe( state['original_df'].describe(include='object').T, use_container_width=True )
 
 
 ########################################################################################################################
 ########################################################################################################################
-def perform_general_processing() -> None:
+def general_processing() -> None:
     st.subheader(':blue[General processing module]')
 
-    ################################
-    # Removing unnecessary columns #
-    ################################
-    with st.expander('Removing columns') :
-        # Recommending to remove columns with a lot of Nones #
-        none_columns = []
-        for col in state['preprocessed_df'] :
-            null_values_sum = state['preprocessed_df'][col].isna().sum()
-            nulls_threshold = 40 #len(state['original_df'])/2
+    # Asking for filtering options #
+    with st.expander('Filter dataset:') :
+        filtered_df = dataframe_explorer( indexed( latest(state['preprocessed_df']) ), case=False)
 
-            if null_values_sum >= nulls_threshold :
-                none_columns.append((col,null_values_sum))
+        hr()
+        # Showing the filtered dataset #
+        st.subheader('Filtered dataset')
+        st.dataframe(filtered_df)
 
-        if len(list(none_columns)) :
-            default_nones = list(zip(*none_columns))[0]
-        else :
-            default_nones = []
+        # Displaying shape and column types #
+        cols = st.columns(2)
+        with cols[0] :
+            st.info( f"Dataset contains: :green[{filtered_df.shape[0]}] rows and :green[{filtered_df.shape[1]}] columns" )
+            total_cells = filtered_df.shape[0]*filtered_df.shape[1]
+            total_nans = filtered_df.isna().sum().sum()
+            nans_percent = round(total_nans/total_cells*100,1)
 
-        removal_choices = st.multiselect(
-            label = 'Choose unused columns or columns with a lot of None values to remove',
-            options = state['preprocessed_df'].columns,
-            default = default_nones
-        )
-        # Submitting column removal #
-        st.button(
-            label='Remove columns',
-            key='submit_remove_columns'
-        )
-        if state['submit_remove_columns'] :
-            state['preprocessed_df'].drop(removal_choices,axis=1,inplace=True,errors='ignore')
-            st.success('Columns successfully removed!')
+        with cols[1] :
+            st.info( f"In total :green[{total_cells}] cells, where :green[{total_nans}] (:green[{nans_percent}%]) are empty" )
+
+
+        apply_filters_button = st.button('Apply filters')
+        if apply_filters_button :
+            state['preprocessed_df'] = filtered_df
+            st.success('Successfully filtered the dataset!')
             time.sleep(1.5)
             st.rerun()
 
-    #############################
-    # Choosing base date column #
-    #############################
-    with st.expander('Setting base date column') :
-        # Finding all the date columns #
-        date_col_options = []
-        for col in state['preprocessed_df'].columns :
-            if state['preprocessed_df'][col].dtype in ['datetime64','datetime64[ns]'] :
-                date_col_options.append(col)
-
-        # Asking for the base date choice #
-        base_param_choice = st.selectbox(
-            label='Choose one of the dates to be your base date',
-            options=date_col_options
-        )
-
-        # Submit the choice #
-        submit_basedate_choice = st.button(label='Submit base date choice')
-
-        if submit_basedate_choice:
-            state['base_date'] = base_param_choice
-            st.success(f'{base_param_choice} is set as your base date column!')
-            time.sleep(1.5)
-            st.rerun()
 
     #######################
     # Choosing data batch #
@@ -229,9 +166,45 @@ def perform_general_processing() -> None:
 def perform_column_typization() -> None :
     st.subheader(':green[Column typization module]')
 
+
+    ################################
+    # Removing unnecessary columns #
+    ################################
+    with st.expander('Removing columns') :
+        # Recommending to remove columns with a lot of Nones #
+        none_columns = []
+        for col in state['preprocessed_df'] :
+            null_values_sum = state['preprocessed_df'][col].isna().sum()
+            nulls_threshold = 40 #len(state['original_df'])/2
+
+            if null_values_sum >= nulls_threshold :
+                none_columns.append((col,null_values_sum))
+
+        if len(list(none_columns)) :
+            default_nones = list(zip(*none_columns))[0]
+        else :
+            default_nones = []
+
+        removal_choices = st.multiselect(
+            label = 'Choose unused columns or columns with a lot of None values to remove',
+            options = state['preprocessed_df'].columns,
+            default = default_nones
+        )
+        # Submitting column removal #
+        st.button(
+            label='Remove columns',
+            key='submit_remove_columns'
+        )
+        if state['submit_remove_columns'] :
+            state['preprocessed_df'].drop(removal_choices,axis=1,inplace=True,errors='ignore')
+            st.success('Columns successfully removed!')
+            time.sleep(1.5)
+            st.rerun()
+
+    #############################################
     # Choosing numerical & categorical features #
-    with st.expander('Choose numerical and categorical columns') :
-        
+    #############################################
+    with st.expander('Change column types manually') :
         types_mp = {}
         # Finding default numerical features #
         for col in state['preprocessed_df'] :
@@ -319,3 +292,87 @@ def perform_column_typization() -> None :
             st.success('Successfully changed data types!')
             time.sleep(1.5)
             st.rerun()
+
+
+    #############################
+    # Choosing base date column #
+    #############################
+    with st.expander('Setting base date column') :
+        # Finding all the date columns #
+        date_col_options = []
+        for col in state['preprocessed_df'].columns :
+            if state['preprocessed_df'][col].dtype in ['datetime64','datetime64[ns]'] :
+                date_col_options.append(col)
+
+        # Asking for the base date choice #
+        base_param_choice = st.selectbox(
+            label='Choose one of the dates to be your base date',
+            options=date_col_options
+        )
+
+        # Submit the choice #
+        submit_basedate_choice = st.button(label='Submit base date choice')
+
+        if submit_basedate_choice:
+            state['base_date'] = base_param_choice
+            st.success(f'{base_param_choice} is set as your base date column!')
+            time.sleep(1.5)
+            st.rerun()
+
+
+
+########################################################################################################################
+########################################################################################################################
+def show_preprocessed() -> None :    
+    # Printing out the preprocessed dataframe #
+    if 'preprocessed_df' in state :
+        # Showing the new preprocessed data #
+        hr()
+        st.subheader(':rainbow[Preprocessed data:]')
+        st.write(state['preprocessed_df'].head(200))
+
+        # Showing the general info about the preprocessing #
+        if 'base_date' in state :
+            hr()
+            base_date = state['base_date']
+            st.info(f'Base date column: {base_date}')
+
+        # Displaying shape and column types #
+        cols = st.columns(2)
+        with cols[0] :
+            st.info( f"Dataset contains: :green[{state['preprocessed_df'].shape[0]}] rows and :green[{state['preprocessed_df'].shape[1]}] columns" )
+            total_cells = state['preprocessed_df'].shape[0]*state['preprocessed_df'].shape[1]
+            total_nans = state['preprocessed_df'].isna().sum().sum()
+            nans_percent = round(total_nans/total_cells*100,1)
+
+        with cols[1] :
+            st.info( f"In total :green[{total_cells}] cells, where :green[{total_nans}] (:green[{nans_percent}%]) are empty" )
+
+        # Showing data types #
+        space(2)
+        num_cols, cat_cols, date_cols = [], [], []
+        for col in state['preprocessed_df'].columns :
+            if state['preprocessed_df'][col].dtype in ['int','float'] :
+                num_cols.append(col)
+            elif state['preprocessed_df'][col].dtype in ['str', 'object'] :
+                cat_cols.append(col)
+            elif state['preprocessed_df'][col].dtype in ['datetime64','datetime64[ns]'] :
+                date_cols.append(col)
+
+        # Find the maximum length among the arrays
+        max_length = max(len(num_cols), len(cat_cols), len(date_cols))
+
+        # Create series of equal length with NaN values where necessary
+        num_series = pd.Series(num_cols + [np.nan] * (max_length - len(num_cols)))
+        cat_series = pd.Series(cat_cols + [np.nan] * (max_length - len(cat_cols)))
+        date_series = pd.Series(date_cols + [np.nan] * (max_length - len(date_cols)))
+
+        # Create the DataFrame
+        cols_view_df = pd.DataFrame(data={
+            'Numerical': num_series,
+            'Categorical': cat_series,
+            'Date&Time': date_series
+        })
+        
+        st.subheader('Column types:')
+        st.dataframe(cols_view_df, use_container_width=True,hide_index=True)

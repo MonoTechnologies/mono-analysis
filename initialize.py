@@ -15,7 +15,7 @@ def init() :
     int_states = ['editor_key_datatypes']
     for _ in int_states :
         if _ not in state :
-            state[_] = 0    
+            state[_] = 0
 
     list_states = ['chart_views']
     for _ in list_states :

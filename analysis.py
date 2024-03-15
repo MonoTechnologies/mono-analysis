@@ -14,7 +14,7 @@ from utils import *
 
 ################################################################
 ################################################################
-def analysis_section() -> None :
+def start() -> None :
 	st.header('Data Analysis')
 
 	# Choosing analysis type #
@@ -33,7 +33,7 @@ def analysis_section() -> None :
 
 	hr()
 	if analysis_button == 'General' :
-		perform_general_analysis()
+		General_analysis()
 	elif analysis_button == 'Manual charts' :
 		Manual_analysis()
 	elif analysis_button == 'Pandas Profiling' :
@@ -42,50 +42,65 @@ def analysis_section() -> None :
 
 ################################################################
 ################################################################
-def perform_general_analysis() -> None :
+class General_analysis :
+    ####################################################################################
+    def __init__(self) -> None :
 
-    # Asking for filtering options #
-    st.subheader('Dataset view:')
-    with st.expander('Filter dataset:') :
-        state['filtered_df'] = dataframe_explorer( indexed( latest(state['preprocessed_df']) ), case=False)
+        # Calculate the shape and column structure #
+        self.calculate_metrics()
 
-    # Showing the filtered dataset #
-    st.dataframe(state['filtered_df'])
+        # Show general data descripton #
+        self.display_column_info()
 
-    # Calculating the metrics #
-    num_cols, cat_cols, date_cols = [], [], []
-    for col in state['filtered_df'].columns :
-        if state['filtered_df'][col].dtype in ['int','float'] :
-            num_cols.append(col)
-        elif state['filtered_df'][col].dtype in ['str', 'object'] :
-            cat_cols.append(col)
-        elif state['filtered_df'][col].dtype in ['datetime64','datetime64[ns]'] :
-            date_cols.append(col)
+    ####################################################################################
+    def calculate_metrics(self) :
+        st.subheader('Overview of the Preprocessed Dataset')
+        st.dataframe(state['preprocessed_df'].head(200), use_container_width=True)
+        # Calculating the metrics #
+        num_cols, cat_cols, date_cols = [], [], []
+        for col in state['preprocessed_df'].columns :
+            if state['preprocessed_df'][col].dtype in ['int','float'] :
+                num_cols.append(col)
+            elif state['preprocessed_df'][col].dtype in ['str', 'object'] :
+                cat_cols.append(col)
+            elif state['preprocessed_df'][col].dtype in ['datetime64','datetime64[ns]'] :
+                date_cols.append(col)
 
-    # Displaying shape and column types #
-    cols = st.columns(2)
-    with cols[0] :
-        st.info( f"Dataset contains: :green[{state['filtered_df'].shape[0]}] rows and :green[{state['filtered_df'].shape[1]}] columns" )
-        
-        total_cells = state['filtered_df'].shape[0]*state['filtered_df'].shape[1]
-        total_nans = state['filtered_df'].isna().sum().sum()
-        nans_percent = round(total_nans/total_cells*100,1)
+        # Displaying shape and column types #
+        cols = st.columns(2)
+        with cols[0] :
+            st.info( f"Dataset contains: :green[{state['preprocessed_df'].shape[0]}] rows and :green[{state['preprocessed_df'].shape[1]}] columns" )
+            
+            total_cells = state['preprocessed_df'].shape[0]*state['preprocessed_df'].shape[1]
+            total_nans = state['preprocessed_df'].isna().sum().sum()
+            nans_percent = round(total_nans/total_cells*100,1)
 
-        st.info( f"In total :green[{total_cells}] cells, where :green[{total_nans}] (:green[{nans_percent}%]) are empty" )
+            st.info( f"In total :green[{total_cells}] cells, where :green[{total_nans}] (:green[{nans_percent}%]) are empty" )
 
-    with cols[1] :
-        st.info( f"Column types: :green[{len(num_cols)}] Numerical, :green[{len(cat_cols)}] Categorical and :green[{len(date_cols)}] DateTime" )
+        with cols[1] :
+            st.info( f"Column types: :green[{len(num_cols)}] Numerical, :green[{len(cat_cols)}] Categorical and :green[{len(date_cols)}] DateTime" )
 
+    ####################################################################################
+    def display_column_info(self) :
+        hr()
+        st.subheader('Column types:')
+        st.table( state['preprocessed_df'].dtypes )
 
-    # Data description #
-    hr()
-    st.subheader('Data description:')
-    st.dataframe( state['filtered_df'].describe().drop(['25%','50%','75%']).T, use_container_width=True)
+        # Data description #
+        hr()
+        st.subheader('Data description:')
 
-    # Null values #
-    hr()
-    st.subheader('Null values (Empty cells)')
-    st.table( state['filtered_df'].isna().sum() )
+        st.write('Numeric Columns:')
+        st.dataframe( state['preprocessed_df'].describe().drop(['25%','50%','75%']).T, use_container_width=True)
+
+        st.write('Categorical Columns:')
+        st.dataframe( state['preprocessed_df'].describe(include='object').T, use_container_width=True )
+
+        # Null values #
+        hr()
+        st.subheader('Null values (Empty cells)')
+        st.table( state['preprocessed_df'].isna().sum() )
+
 
 
 ################################################################
@@ -95,13 +110,12 @@ def perform_pandas_profiling() -> None :
 	generate_profiling_button = st.button('Generate Pandas Profiling')
 
 	if generate_profiling_button :
-		pr = state['filtered_df'].profile_report()
+		pr = state['preprocessed_df'].profile_report()
 		st_profile_report(pr)
 
 
 ################################################################
 ################################################################
-
 class Manual_analysis :
     ####################################################################################
     def __init__(self) :
@@ -166,17 +180,17 @@ class Manual_analysis :
 
         if feature_nums in ['One column','Two columns', 'Three columns'] :
             with feat_cols[0] :
-                col1 = st.selectbox('Column 1',options=state['filtered_df'].columns, key='col_1'+str(self.current_view) )
+                col1 = st.selectbox('Column 1',options=state['preprocessed_df'].columns, key='col_1'+str(self.current_view) )
                 chart_features.append(col1)
         
         if feature_nums in ['Two columns','Three columns'] :
             with feat_cols[1] :
-                col2 = st.selectbox('Column 2',options=state['filtered_df'].columns, key='col_2'+str(self.current_view) )
+                col2 = st.selectbox('Column 2',options=state['preprocessed_df'].columns, key='col_2'+str(self.current_view) )
                 chart_features.append(col2)
             
         if feature_nums == 'Three columns' :
             with feat_cols[2] :
-                col3 = st.selectbox('Column 3',options=state['filtered_df'].columns, key='col_3'+str(self.current_view) )
+                col3 = st.selectbox('Column 3',options=state['preprocessed_df'].columns, key='col_3'+str(self.current_view) )
                 chart_features.append(col3)
             
         return chart_features
@@ -192,11 +206,11 @@ class Manual_analysis :
         # Finding data types of chart columns #
         numeric_cols, categorical_cols, date_cols = 0,0,0
         for col in self.chart_features :
-            if state['filtered_df'][col].dtype in ['int','float'] :
+            if state['preprocessed_df'][col].dtype in ['int','float', 'int64', 'float64'] :
                 numeric_cols += 1
-            elif state['filtered_df'][col].dtype in ['str', 'object'] :
+            elif state['preprocessed_df'][col].dtype in ['str', 'object'] :
                 categorical_cols += 1
-            elif state['filtered_df'][col].dtype in ['datetime64','datetime64[ns]'] :
+            elif state['preprocessed_df'][col].dtype in ['datetime64','datetime64[ns]'] :
                 date_cols += 1
         
         ##############################################################
@@ -228,7 +242,7 @@ class Manual_analysis :
                 st.warning( f'Sorry, currently we do not provide charts with {numeric_cols} Numeric features' )
             elif categorical_cols :
                 st.warning( f'Sorry, currently we do not provide charts with {categorical_cols} Categorical features' )
-            else :
+            elif date_cols :
                 st.warning( f'Sorry, currently we do not provide charts with {date_cols} DateTime features' )
             
             st.stop()

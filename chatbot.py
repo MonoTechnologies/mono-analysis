@@ -9,7 +9,7 @@ import pandas as pd
 import time
 
 
-def chat_section() :
+def start() :
     # Initializing chat #
     if 'chat' not in state:
         state['chat'] = [{

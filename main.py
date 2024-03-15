@@ -9,7 +9,7 @@ import initialize
 import login
 import landing
 import data_prep
-import chat
+import chatbot
 import analysis
 from utils import *
 
@@ -39,13 +39,13 @@ def show_sidebar() :
 def show_pages() :
     ############################################
     if state['current_page'] == 'Home' :
-        landing.home_section()
+        landing.start()
     elif state['current_page'] == 'Data' :
-        data_prep.data_section()
+        data_prep.start()
     elif state['current_page'] == 'Analysis' :
-        analysis.analysis_section()
+        analysis.start()
     elif state['current_page'] == 'AI Assistant' :
-        chat.chat_section()
+        chatbot.start()
 
 
 
@@ -53,9 +53,8 @@ if __name__ == '__main__':
     # Initializing session variables and basic functions #
     initialize.init()
 
-    # # Login Page #
-    # login.check_register()
-    # login.check_login()
+    # Login Page #
+    # login.check()
 
     # Displaying Menu #
     with st.sidebar :
@@ -64,7 +63,9 @@ if __name__ == '__main__':
     # Displaying the current page #
     show_pages()
 
-     # # Initializing databases #
+
+
+    # # Initializing databases #
     # with st.spinner( 'Deleting databases\' values' ) :
     #     databases_ = [ 'debt_queries', 'login_queries', 'product_queries', 'products_db', 'customers_debt', 'providers_debt' ]
     #     for db in databases_ :

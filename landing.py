@@ -5,7 +5,7 @@ from utils import *
 
 ###########################################################################################
 
-def home_section() :
+def start() :
     wiki()
     hr()
     quick_example()
