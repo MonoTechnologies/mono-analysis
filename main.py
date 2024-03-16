@@ -21,12 +21,11 @@ def show_sidebar() :
 
     side_button = option_menu(
         menu_title = 'Mono-AI',
-        options = ["Home", "Data", "Analysis", 'AI Assistant', 'Settings'],
-        icons = ['house', 'cloud-plus', "graph-up", 'robot', 'gear'],
+        options = ["Home", 'Profile', 'Settings', '---' , "Data", "Analysis", 'AI Assistant'],
+        icons = ['house', 'person-circle', 'gear', '---', 'cloud-plus', "graph-up", 'robot'],
         key = 'main_menu',
         orientation="vertical",
         on_change = initialize.width_settings
-
     )
     ############################################
 
