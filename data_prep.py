@@ -412,20 +412,20 @@ def show_preprocessed() -> None :
                     file_name='preprocessed_df.csv',
                     mime='text/csv',
                 )
-            elif download_choice == 'Excel' :
-                buffer = io.BytesIO()
+            # elif download_choice == 'Excel' :
+            #     buffer = io.BytesIO()
 
-                with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-                    # Write each dataframe to a different worksheet.
-                    df = state['preprocessed_df'].copy()
-                    df.to_excel(writer, sheet_name='Sheet1', index=False)
+            #     with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            #         # Write each dataframe to a different worksheet.
+            #         df = state['preprocessed_df'].copy()
+            #         df.to_excel(writer, sheet_name='Sheet1', index=False)
 
-                    download_button = st.download_button(
-                        label="Download data as Excel",
-                        data=buffer,
-                        file_name='large_df.xlsx',
-                        mime='application/vnd.ms-excel'
-                    )
+            #         download_button = st.download_button(
+            #             label="Download data as Excel",
+            #             data=buffer,
+            #             file_name='large_df.xlsx',
+            #             mime='application/vnd.ms-excel'
+            #         )
 
 
     ###########################
