@@ -10,6 +10,9 @@ import pandas_profiling
 from pandas_profiling import ProfileReport
 from streamlit_pandas_profiling import st_profile_report
 
+import matplotlib.pyplot as plt
+import altair as alt
+
 from utils import *
 
 ################################################################
@@ -184,7 +187,7 @@ class Manual_analysis :
                 # Input -> chart type #
                 hr()
                 self.chart_type = self.input_chart_type()
-                
+
                 ######################
                 # Generating buttons #
                 hr()
@@ -240,7 +243,7 @@ class Manual_analysis :
     
 
     ####################################################################################
-    def input_chart_type(self) :
+    def input_chart_type(self) -> str :
         '''
         A sub-function for selecting chart type
         '''
@@ -259,16 +262,19 @@ class Manual_analysis :
         ##############################################################
         # Selecting possible chart options based on column datatypes #
         if numeric_cols == 1 and categorical_cols == 0 and date_cols == 0:
-            possible_chart_options = [ 'Histogram', 'Box Plot' ]
+            possible_chart_options = [ 'Histogram', 'Box Plot', 'Count Line' ]
         
         elif numeric_cols == 0 and categorical_cols == 1 and date_cols == 0 :
             possible_chart_options = ['Bar Chart', 'Pie Chart']
 
         elif numeric_cols == 2 and categorical_cols == 0 and date_cols == 0 :
-            possible_chart_options = ['Scatter Plot']
+            possible_chart_options = ['Scatter Plot', 'Mean Line']
         
         elif numeric_cols == 0 and categorical_cols == 2 and date_cols == 0 :
             possible_chart_options = ['Stacked Bar Chart']
+
+        elif numeric_cols == 1 and categorical_cols == 1 and date_cols == 0 :
+            possible_chart_options = ['Grouped Box Plot']
 
         #####################################
         # Invalid Column types for plotting #
@@ -292,7 +298,7 @@ class Manual_analysis :
 
         ################################
         # input -> Choosing chart type #
-        with st.columns(5)[0] :
+        with st.columns(4)[0] :
             chart_type = st.selectbox(
                 label = 'Chart type:',
                 options = possible_chart_options,
@@ -303,17 +309,24 @@ class Manual_analysis :
     
 
     ####################################################################################
-    def view_buttons(self) :
+    def view_buttons(self) -> None :
         ######################
         # Generating a chart #
         cols = st.columns(6)
         with cols[0] :
-            st.button('Generate a chart', key = 'generate'+str(self.current_view))
+            generate_plot = st.button('Generate a chart', key = 'generate'+str(self.current_view))
+
+        if generate_plot:
+            Plot_figure(
+                features = list(self.chart_features),
+                chart_type = self.chart_type
+            )
 
         ###################
         # Deleting a view #
         with cols[1] :
             delete_view = st.button('Delete view', key='delete'+str(self.current_view))
+
         if delete_view :
             # Deleting the current view #
             del_pos = self.current_view-1
@@ -324,3 +337,89 @@ class Manual_analysis :
                 state['chart_views'][i] = (i+1, state['chart_views'][i][1], state['chart_views'][i][2] )
 
             st.rerun()
+
+
+
+class Plot_figure :
+    def __init__(self, features: list, chart_type: str ) -> None :
+        self.features = features
+
+        if chart_type == 'Histogram' :
+            self.plot_histogram()
+        elif chart_type == 'Scatter Plot' :
+            self.plot_scatter()
+        elif chart_type == 'Bar Chart' :
+            self.plot_barchart()
+        elif chart_type == 'Count Line' or chart_type == 'Mean Line' :
+            self.plot_line()
+        elif chart_type == 'Pie Chart' :
+            self.plot_piechart()
+        elif chart_type == 'Box Plot' or chart_type == 'Grouped Box Plot' :
+            self.plot_boxplot()
+
+        # elif chart_type == 'Stacked Bar Chart' :
+        #     plot_stacked_barchart()
+
+    #######################################################
+    def plot_histogram(self) -> None :
+        alt_chart = alt.Chart( state['preprocessed_df'] ).mark_bar().encode(
+            alt.X(self.features[0]),
+            y='count()',
+        )
+        st.altair_chart(alt_chart, theme=None, use_container_width=True)
+
+    #######################################################
+    def plot_scatter(self) -> None :
+        st.scatter_chart(
+            state['preprocessed_df'],
+            x = self.features[0],
+            y = self.features[1]
+            # color='col4',
+            # size='col3',
+        )
+    #######################################################
+    def plot_line(self) -> None :
+        if len(self.features) == 1 :
+            alt_chart = alt.Chart( state['preprocessed_df'] ).mark_line().encode(
+                alt.X(self.features[0]),
+                y='count()',
+            )
+        elif len(self.features) == 2 :
+            grouped_data = state['preprocessed_df'].groupby(self.features[0])[self.features[1]].mean().reset_index()
+
+            alt_chart = alt.Chart(grouped_data).mark_line().encode(
+                alt.X(self.features[0]),
+                alt.Y(self.features[1], title='Mean of '+self.features[1]),
+            )
+        st.altair_chart(alt_chart, theme=None, use_container_width=True)
+
+    #######################################################
+    def plot_boxplot(self) -> None:
+        if len(self.features) == 1 :
+            alt_chart = alt.Chart( state['preprocessed_df'] ).mark_boxplot().encode(
+                alt.X(self.features[0]+":Q").scale(zero=False)
+            )
+        elif len(self.features) == 2 :
+            alt_chart = alt.Chart( state['preprocessed_df'] ).mark_boxplot().encode(
+                alt.X(self.features[0]+':Q').scale(zero=False),
+                alt.Y(self.features[1]+':N')
+            )
+        st.altair_chart(alt_chart, theme=None, use_container_width=True)
+    #######################################################
+    def plot_barchart(self) -> None :
+        alt_chart = alt.Chart( state['preprocessed_df'] ).mark_bar().encode(
+            alt.X( self.features[0] ),
+            alt.Y( 'count()' )
+        )
+        st.altair_chart(alt_chart, theme=None, use_container_width=True)
+    #######################################################
+    def plot_piechart(self) -> None :
+        # Calculate value counts for self.features[0]
+        value_counts = state['preprocessed_df'][self.features[0]].value_counts().reset_index()
+
+        chart = alt.Chart(value_counts).mark_arc().encode(
+            theta=alt.Theta(field="count", type="quantitative"),
+            color=alt.Color(field=self.features[0], type="nominal"),
+        )
+
+        st.altair_chart(chart, theme=None, use_container_width=True)
