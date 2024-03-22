@@ -178,12 +178,12 @@ class Manual_analysis :
             self.current_view = chart_view[0]
             
             with st.expander( f"Chart view Num. {self.current_view}", expanded=False ) :
-                ###########################
+                #############################
                 # Input -> features to plot #
                 hr()
                 self.chart_features = self.input_chart_features()
                 
-                #####################
+                #######################
                 # Input -> chart type #
                 hr()
                 self.chart_type = self.input_chart_type()
@@ -238,8 +238,24 @@ class Manual_analysis :
             with feat_cols[2] :
                 col3 = st.selectbox('Column 3',options=state['preprocessed_df'].columns, key='col_3'+str(self.current_view) )
                 chart_features.append(col3)
-            
-        return chart_features
+        
+        ####################################
+        # Reordering features by Data Type #
+        ordered_chart_features = []
+        for col in chart_features :
+            if state['preprocessed_df'][col].dtype in ['int','float', 'int64', 'float64'] :
+                ordered_chart_features.append(col)
+        
+        for col in chart_features :
+            if state['preprocessed_df'][col].dtype in ['str', 'object'] :
+                ordered_chart_features.append(col)
+
+        for col in chart_features :
+            if state['preprocessed_df'][col].dtype in ['datetime64','datetime64[ns]'] :
+                ordered_chart_features.append(col)
+
+
+        return ordered_chart_features
     
 
     ####################################################################################
@@ -275,6 +291,12 @@ class Manual_analysis :
 
         elif numeric_cols == 1 and categorical_cols == 1 and date_cols == 0 :
             possible_chart_options = ['Grouped Box Plot']
+        
+        elif numeric_cols == 1 and categorical_cols == 0 and date_cols == 1 :
+            possible_chart_options = ['History Line']
+
+        elif numeric_cols == 0 and categorical_cols == 1 and date_cols == 1 :
+            possible_chart_options = ['History Bars']
 
         #####################################
         # Invalid Column types for plotting #
@@ -356,9 +378,12 @@ class Plot_figure :
             self.plot_piechart()
         elif chart_type == 'Box Plot' or chart_type == 'Grouped Box Plot' :
             self.plot_boxplot()
-
-        # elif chart_type == 'Stacked Bar Chart' :
-        #     plot_stacked_barchart()
+        elif chart_type == 'Stacked Bar Chart' :
+            self.plot_stacked_barchart()
+        elif chart_type == 'History Line' :
+            self.plot_history_line()
+        elif chart_type == 'History Bars' :
+            self.plot_history_bars()
 
     #######################################################
     def plot_histogram(self) -> None :
@@ -377,6 +402,7 @@ class Plot_figure :
             # color='col4',
             # size='col3',
         )
+
     #######################################################
     def plot_line(self) -> None :
         if len(self.features) == 1 :
@@ -397,14 +423,15 @@ class Plot_figure :
     def plot_boxplot(self) -> None:
         if len(self.features) == 1 :
             alt_chart = alt.Chart( state['preprocessed_df'] ).mark_boxplot().encode(
-                alt.X(self.features[0]+":Q").scale(zero=False)
+                alt.X(self.features[0]+":Q")
             )
         elif len(self.features) == 2 :
             alt_chart = alt.Chart( state['preprocessed_df'] ).mark_boxplot().encode(
-                alt.X(self.features[0]+':Q').scale(zero=False),
+                alt.X(self.features[0]+':Q'),
                 alt.Y(self.features[1]+':N')
             )
         st.altair_chart(alt_chart, theme=None, use_container_width=True)
+
     #######################################################
     def plot_barchart(self) -> None :
         alt_chart = alt.Chart( state['preprocessed_df'] ).mark_bar().encode(
@@ -412,14 +439,62 @@ class Plot_figure :
             alt.Y( 'count()' )
         )
         st.altair_chart(alt_chart, theme=None, use_container_width=True)
+
     #######################################################
     def plot_piechart(self) -> None :
         # Calculate value counts for self.features[0]
         value_counts = state['preprocessed_df'][self.features[0]].value_counts().reset_index()
 
         chart = alt.Chart(value_counts).mark_arc().encode(
-            theta=alt.Theta(field="count", type="quantitative"),
-            color=alt.Color(field=self.features[0], type="nominal"),
+            color=alt.Color(field='index', type="nominal", title='Class:'),
+            theta=alt.Theta(field=self.features[0], type="quantitative", title='Frequency:')
         )
+        st.altair_chart(chart, use_container_width=True)
 
-        st.altair_chart(chart, theme=None, use_container_width=True)
+    #######################################################
+    def plot_stacked_barchart(self) -> None :
+        chart = alt.Chart( state['preprocessed_df'] ).mark_bar().encode(
+            alt.X(self.features[0]),
+            alt.Y( f'count({self.features[1]})', title='Count' ),
+            color = self.features[1]
+        )
+        st.altair_chart(chart, use_container_width=True)
+    
+    ########################################################
+    def plot_history_line(self) -> None :
+
+        custom_df = state['preprocessed_df'].copy()
+
+        custom_df['year'] = custom_df[self.features[1]].dt.year
+        custom_df['month'] = custom_df[self.features[1]].dt.month
+
+        # Group by year and month, calculate the mean of 'numeric_column'
+        monthly_mean_df = custom_df.groupby(['year', 'month']).mean().reset_index()
+
+        # Combine year and month into a single datetime column for plotting
+        monthly_mean_df['date'] = pd.to_datetime(monthly_mean_df[['year', 'month']].assign(day=1))
+
+        chart = alt.Chart(monthly_mean_df).mark_bar().encode(
+            x=alt.X('date:T', title='Month'),
+            y= f'mean({self.features[0]}):Q'
+        )
+        st.altair_chart(chart, use_container_width=True)
+
+    ########################################################
+    def plot_history_bars(self) -> None :
+        custom_df = state['preprocessed_df'].copy()
+
+        custom_df['year'] = custom_df[self.features[1]].dt.year
+        custom_df['month'] = custom_df[self.features[1]].dt.month
+
+        monthly_category_counts_df = custom_df.groupby(['year', 'month', self.features[0] ]).size().reset_index(name='count')
+
+        monthly_category_counts_df['date'] = pd.to_datetime(monthly_category_counts_df[['year', 'month']].assign(day=1))
+
+        # Create Altair chart
+        chart = alt.Chart(monthly_category_counts_df).mark_bar().encode(
+            x=alt.X('date:T', title='Month'),
+            y=alt.Y('count:Q', title='Count'),
+            color=alt.Color(self.features[0] + ':N', title='Category')
+        )
+        st.altair_chart(chart, use_container_width=True)
