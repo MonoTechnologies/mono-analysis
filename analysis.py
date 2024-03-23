@@ -278,13 +278,13 @@ class Manual_analysis :
         ##############################################################
         # Selecting possible chart options based on column datatypes #
         if numeric_cols == 1 and categorical_cols == 0 and date_cols == 0:
-            possible_chart_options = [ 'Histogram', 'Box Plot', 'Count Line' ]
+            possible_chart_options = [ 'Histogram', 'Box Plot' ]
         
         elif numeric_cols == 0 and categorical_cols == 1 and date_cols == 0 :
             possible_chart_options = ['Bar Chart', 'Pie Chart']
 
         elif numeric_cols == 2 and categorical_cols == 0 and date_cols == 0 :
-            possible_chart_options = ['Scatter Plot', 'Mean Line']
+            possible_chart_options = ['Scatter Plot', 'Mean Bars']
         
         elif numeric_cols == 0 and categorical_cols == 2 and date_cols == 0 :
             possible_chart_options = ['Stacked Bar Chart']
@@ -297,6 +297,12 @@ class Manual_analysis :
 
         elif numeric_cols == 0 and categorical_cols == 1 and date_cols == 1 :
             possible_chart_options = ['History Bars']
+        
+        elif numeric_cols == 2 and categorical_cols == 1 and date_cols == 0 :
+            possible_chart_options = ['Colored Scatter Plot']
+
+        elif numeric_cols == 1 and categorical_cols == 1 and date_cols == 1 :
+            possible_chart_options = ['Grouped History Line']
 
         #####################################
         # Invalid Column types for plotting #
@@ -372,8 +378,8 @@ class Plot_figure :
             self.plot_scatter()
         elif chart_type == 'Bar Chart' :
             self.plot_barchart()
-        elif chart_type == 'Count Line' or chart_type == 'Mean Line' :
-            self.plot_line()
+        elif chart_type == 'Mean Bars' :
+            self.plot_mean_bars()
         elif chart_type == 'Pie Chart' :
             self.plot_piechart()
         elif chart_type == 'Box Plot' or chart_type == 'Grouped Box Plot' :
@@ -384,6 +390,10 @@ class Plot_figure :
             self.plot_history_line()
         elif chart_type == 'History Bars' :
             self.plot_history_bars()
+        elif chart_type == 'Colored Scatter Plot' :
+            self.plot_colored_scatter()
+        elif chart_type == 'Grouped History Line' :
+            self.plot_grouped_history_line()
 
     #######################################################
     def plot_histogram(self) -> None :
@@ -404,19 +414,15 @@ class Plot_figure :
         )
 
     #######################################################
-    def plot_line(self) -> None :
-        if len(self.features) == 1 :
-            alt_chart = alt.Chart( state['preprocessed_df'] ).mark_line().encode(
-                alt.X(self.features[0]),
-                y='count()',
-            )
-        elif len(self.features) == 2 :
+    def plot_mean_bars(self) -> None :
+        if len(self.features) == 2 :
             grouped_data = state['preprocessed_df'].groupby(self.features[0])[self.features[1]].mean().reset_index()
 
-            alt_chart = alt.Chart(grouped_data).mark_line().encode(
+            alt_chart = alt.Chart(grouped_data).mark_bar().encode(
                 alt.X(self.features[0]),
                 alt.Y(self.features[1], title='Mean of '+self.features[1]),
             )
+
         st.altair_chart(alt_chart, theme=None, use_container_width=True)
 
     #######################################################
@@ -446,8 +452,8 @@ class Plot_figure :
         value_counts = state['preprocessed_df'][self.features[0]].value_counts().reset_index()
 
         chart = alt.Chart(value_counts).mark_arc().encode(
-            color=alt.Color(field='index', type="nominal", title='Class:'),
-            theta=alt.Theta(field=self.features[0], type="quantitative", title='Frequency:')
+            color=alt.Color(field=self.features[0], type="nominal", title='Class:'),
+            theta=alt.Theta(field='count', type="quantitative", title='Frequency:')
         )
         st.altair_chart(chart, use_container_width=True)
 
@@ -469,7 +475,7 @@ class Plot_figure :
         custom_df['month'] = custom_df[self.features[1]].dt.month
 
         # Group by year and month, calculate the mean of 'numeric_column'
-        monthly_mean_df = custom_df.groupby(['year', 'month']).mean().reset_index()
+        monthly_mean_df = custom_df.groupby(['year', 'month'])[self.features[0]].mean().reset_index()
 
         # Combine year and month into a single datetime column for plotting
         monthly_mean_df['date'] = pd.to_datetime(monthly_mean_df[['year', 'month']].assign(day=1))
@@ -498,3 +504,43 @@ class Plot_figure :
             color=alt.Color(self.features[0] + ':N', title='Category')
         )
         st.altair_chart(chart, use_container_width=True)
+    ########################################################
+    def plot_colored_scatter(self) :
+        chart = alt.Chart( state['preprocessed_df'] ).mark_circle(size=60).encode(
+            x = self.features[0],
+            y = self.features[1],
+            color = self.features[2],
+            # tooltip=['Name', 'Origin', 'Horsepower', 'Miles_per_Gallon']
+        ).interactive()
+        st.altair_chart(chart, use_container_width=True)
+    ########################################################
+    def plot_grouped_history_line(self) :
+        custom_df = state['preprocessed_df'].copy()
+
+        custom_df['year'] = custom_df[self.features[2]].dt.year
+        custom_df['month'] = custom_df[self.features[2]].dt.month
+
+        monthly_mean_df = custom_df.groupby(['year', 'month', self.features[1]])[self.features[0]].mean().reset_index()
+
+        monthly_mean_df['date'] = pd.to_datetime(monthly_mean_df[['year', 'month']].assign(day=1))
+
+            
+        highlight = alt.selection(type='single', on='mouseover',
+                                fields=['symbol'], nearest=True)
+
+        base = alt.Chart( monthly_mean_df ).encode(
+            x='date:T',
+            y=alt.Y(f'{self.features[0]}:Q', title = f'Mean of {self.features[0]}'),
+            color=f'{self.features[1]}:N'
+        )
+
+        points = base.mark_circle().encode( opacity=alt.value(0) ).add_selection( highlight ).properties( width=600 )
+
+        lines = base.mark_line().encode(
+            size=alt.condition(~highlight, alt.value(1), alt.value(3))
+        )
+
+        alt_chart = points + lines
+
+        st.altair_chart(alt_chart, theme="streamlit", use_container_width=True)
+
