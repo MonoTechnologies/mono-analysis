@@ -10,6 +10,9 @@ import time
 
 
 def start() :
+    st.markdown("<h1 style='text-align: center;'>AI chat</h1>", unsafe_allow_html=True)
+    # hr()
+    
     # Initializing chat #
     if 'chat' not in state:
         state['chat'] = [{

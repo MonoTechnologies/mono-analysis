@@ -3,10 +3,27 @@ from streamlit import session_state as state
 
 import time
 
+from google.cloud import firestore
+
 def init() :
+    #####################################
+    #     Connecting to the Databse     #
+    #####################################
+    db = firestore.Client.from_service_account_json("mono-ai.json")
+
+    collections = ['users_db','auth_code','login_queries']
+
+    for _ in collections :
+        if _ not in state :
+            state[_] = db.collection(_)
+
 	####################################
 	# Creating initial state variables #
-    bool_states = ['current_page']
+    ####################################
+    bool_states = [
+        'logged_in', 'register', 'user_found', 'username', 'user_type', # Login varriables
+        'current_page'
+    ]
     
     for _ in bool_states :
         if _ not in state :
@@ -23,17 +40,20 @@ def init() :
             state[_] = []
 
     if 'layout' not in state :
-        state['layout'] = 'wide'
+        # state['layout'] = 'wide'
+        state['layout'] = 'centered'
 
     ###################################
-    # Applying Styles #
+    #           Applying Styles       #
+    ###################################
     main_styles()
+
 
 
 ###############################################################
 def main_styles() :
 	# Adding page configuration #
-    st.set_page_config(page_title='Mono-Analysis', page_icon='🏛', layout = state['layout'])
+    st.set_page_config(page_title='Mono-Analysis', page_icon='🔮', layout = state['layout'])
 
     # Changing button styles #
     st.markdown("""<style>div.stButton > button:first-child {background-color: rgb(0, 153, 204);} </style>""", unsafe_allow_html=True)
@@ -42,7 +62,6 @@ def main_styles() :
     st.markdown("""<style>.block-container {padding-top: 0rem;}</style>""", unsafe_allow_html=True)
     
 ###############################################################
-
 def set_to_wide() :
     state['layout'] = 'wide'
 

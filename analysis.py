@@ -18,7 +18,7 @@ from utils import *
 ################################################################
 ################################################################
 def start() -> None :
-	st.header('Data Analysis')
+	st.markdown("<h1 style='text-align: center;'>Data Analysis</h1>", unsafe_allow_html=True)
 
 	# Choosing analysis type #
 	analysis_button = option_menu(
@@ -368,6 +368,8 @@ class Manual_analysis :
 
 
 
+################################################################
+################################################################
 class Plot_figure :
     def __init__(self, features: list, chart_type: str ) -> None :
         self.features = features

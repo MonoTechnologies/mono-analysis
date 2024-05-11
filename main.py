@@ -5,13 +5,15 @@ import streamlit as st
 from streamlit import session_state as state
 from streamlit_option_menu import option_menu
 
+from utils import *
+
 import initialize
 import login
 import landing
 import data_prep
 import chatbot
 import analysis
-from utils import *
+import user_profile
 
 
 def show_sidebar() :
@@ -21,14 +23,13 @@ def show_sidebar() :
 
     side_button = option_menu(
         menu_title = 'Mono-AI',
-        options = ["Home", 'Profile', 'Settings', '---' , "Data", "Analysis", 'AI Assistant'],
-        icons = ['house', 'person-circle', 'gear', '---', 'cloud-plus', "graph-up", 'robot'],
+        options = ["Home", "Data", "Analysis", 'AI Assistant', '---' , 'Profile', 'Settings'],
+        icons = ['house', 'cloud-plus', "graph-up", 'robot', '---', 'person-circle', 'gear'],
         key = 'main_menu',
         orientation="vertical",
         on_change = initialize.width_settings
     )
     ############################################
-
     if state['current_page'] != side_button :
         state['current_page'] = side_button
         st.rerun()
@@ -45,15 +46,17 @@ def show_pages() :
         analysis.start()
     elif state['current_page'] == 'AI Assistant' :
         chatbot.start()
+    elif state['current_page'] == 'Profile' :
+        user_profile.start()
 
 
 
 if __name__ == '__main__':
     # Initializing session variables and basic functions #
     initialize.init()
-
+    
     # Login Page #
-    # login.check()
+    login.check()
 
     # Displaying Menu #
     with st.sidebar :
@@ -62,10 +65,5 @@ if __name__ == '__main__':
     # Displaying the current page #
     show_pages()
 
-
-
-    # # Initializing databases #
-    # with st.spinner( 'Deleting databases\' values' ) :
-    #     databases_ = [ 'debt_queries', 'login_queries', 'product_queries', 'products_db', 'customers_debt', 'providers_debt' ]
-    #     for db in databases_ :
-    #         reset_( db )
+    # Initializing databases #
+    # reset_dbs()

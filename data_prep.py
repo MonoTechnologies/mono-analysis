@@ -13,7 +13,7 @@ from utils import *
 ########################################################################################################################
 ########################################################################################################################
 def start() -> None:
-    st.title('Data Factory')
+    st.markdown("<h1 style='text-align: center;'>Data Factory</h1>", unsafe_allow_html=True)
 
     # Choosing step #
     data_prep_step = option_menu(

@@ -17,7 +17,6 @@ def check() -> None :
 
 def check_register() :
 	if state['register'] == True and state['logged_in'] == False :
-
 		st.title('Регистрация')
 
 		# Asking for a new handle, lowering it, and checking for its length
@@ -30,7 +29,6 @@ def check_register() :
 			st.stop()
 
 		# Checking if such username already exists #
-
 		for iter_ in get_docs( 'users_db' )['username'] :
 			if iter_ == new_handle :
 				st.error('Извините, такой аккаунт уже существует')
@@ -116,6 +114,7 @@ def check_register() :
 						st.success('Успешно зарегистрирован !')
 						time.sleep(1)
 
+						set_to_wide()
 						st.rerun()
 
 		with col2 :
@@ -179,10 +178,11 @@ def check_login() :
 					change_doc( 'login_queries', new_doc_id('login_queries'),
 								{ 'type':'login', 'username':state['username'], 'time': current_time() } )
 					
-
 					st.success('Вход выполнен !')
-					time.sleep(1)
 
+					time.sleep(1)
+					set_to_wide()
+					
 					st.rerun()
 
 				elif handle != '' and password != '' and submit_ == True :

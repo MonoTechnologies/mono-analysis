@@ -4,6 +4,8 @@ import numpy as np
 import streamlit as st
 from streamlit import session_state as state
 
+from google.cloud import firestore
+
 from datetime import datetime
 
 def read_file() :
@@ -72,7 +74,7 @@ def rearrange( df, collection_id ) :
 
 	# Users DB #
 	if collection_id == 'users_db' :
-		return df[ ['id','username','password','type'] ]
+		return df[ ['id','username','password','type', 'registered_at'] ]
 
 ################################################################
 # Firestore Functions #
@@ -121,9 +123,15 @@ def delete_doc( collection_id, document_id ) :
 
 def reset_( collection_id ) :
 	docs = get_docs( collection_id )
-
 	for i in docs['id'] :
 		if i == '-1' :
 			continue
 		print( i )
 		delete_doc( collection_id, i )
+
+def reset_dbs() :
+	# Initializing databases #
+    with st.spinner( 'Deleting databases\' values' ) :
+        databases_ = [ 'login_queries' ]
+        for db in databases_ :
+            reset_( db )
