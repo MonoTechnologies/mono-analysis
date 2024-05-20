@@ -6,6 +6,7 @@ from streamlit import session_state as state
 from streamlit_option_menu import option_menu
 from streamlit_extras.dataframe_explorer import dataframe_explorer
 
+from pydantic_settings import BaseSettings
 from pandas_profiling import ProfileReport
 from streamlit_pandas_profiling import st_profile_report
 
