@@ -13,7 +13,9 @@ import landing
 import data_prep
 import chatbot
 import analysis
+import modeling
 import user_profile
+import settings
 
 
 def show_sidebar() :
@@ -23,8 +25,8 @@ def show_sidebar() :
 
     side_button = option_menu(
         menu_title = 'Mono-AI',
-        options = ["Home", "Data", "Analysis", 'AI Assistant', '---' , 'Profile', 'Settings'],
-        icons = ['house', 'cloud-plus', "graph-up", 'robot', '---', 'person-circle', 'gear'],
+        options = ["Home", "Data", "Analysis", 'Modeling', 'AI Assistant', '---' , 'Profile', 'Settings'],
+        icons = ['house', 'cloud-plus', "graph-up", 'eye', 'robot', '---', 'person-circle', 'gear'],
         key = 'main_menu',
         orientation="vertical",
         on_change = initialize.width_settings
@@ -34,6 +36,7 @@ def show_sidebar() :
         state['current_page'] = side_button
         st.rerun()
 
+    st.markdown('Made by Nuralizoda Abubakr')
 
 
 def show_pages() :
@@ -46,8 +49,12 @@ def show_pages() :
         analysis.start()
     elif state['current_page'] == 'AI Assistant' :
         chatbot.start()
+    elif state['current_page'] == 'Modeling' :
+        modeling.start()
     elif state['current_page'] == 'Profile' :
         user_profile.start()
+    elif state['current_page'] == 'Settings' :
+        settings.start()
 
 
 

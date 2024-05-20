@@ -7,6 +7,7 @@ from streamlit import session_state as state
 from google.cloud import firestore
 
 from datetime import datetime
+import time
 
 def read_file() :
     # Uploading file button #

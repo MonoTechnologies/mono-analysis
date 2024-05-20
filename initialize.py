@@ -22,14 +22,15 @@ def init() :
     ####################################
     bool_states = [
         'logged_in', 'register', 'user_found', 'username', 'user_type', # Login varriables
-        'current_page'
+        'current_page', # Main variables
+        'model_type' # Modeling variables
     ]
     
     for _ in bool_states :
         if _ not in state :
             state[_] = False
     
-    int_states = ['editor_key_datatypes']
+    int_states = ['editor_key_datatypes', 'modeling_stage']
     for _ in int_states :
         if _ not in state :
             state[_] = 0
@@ -77,5 +78,11 @@ def width_settings(arg) :
     elif state[arg] == 'Analysis' :
         set_to_wide()
     elif state[arg] == 'AI Assistant' :
+        set_to_standard()
+    elif state[arg] == 'Settings' :
+        set_to_standard()
+    elif state[arg] == 'Profile' :
+        set_to_standard()
+    elif state[arg] == 'Modeling' :
         set_to_standard()
 ###############################################################
