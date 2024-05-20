@@ -4,7 +4,6 @@ streamlit-extras
 streamlit-chat
 streamlit-option-menu
 streamlit-pandas-profiling
-ydata-profiling
 altair
 
 google-cloud-firestore
