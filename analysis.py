@@ -6,9 +6,9 @@ from streamlit import session_state as state
 from streamlit_option_menu import option_menu
 from streamlit_extras.dataframe_explorer import dataframe_explorer
 
-from pydantic_settings import BaseSettings
-from pandas_profiling import ProfileReport
-from streamlit_pandas_profiling import st_profile_report
+# from pydantic_settings import BaseSettings
+# from pandas_profiling import ProfileReport
+# from streamlit_pandas_profiling import st_profile_report
 
 import matplotlib.pyplot as plt
 import altair as alt
@@ -23,8 +23,8 @@ def start() -> None :
 	# Choosing analysis type #
 	analysis_button = option_menu(
 		menu_title = None,
-		options = ["General", "Manual charts", "Pandas Profiling", 'AI assistant'],
-		icons = ['bar-chart-fill', 'search', "clipboard-data", 'robot', 'gear'],
+		options = ["General", "Manual charts", 'AI assistant'],
+		icons = ['bar-chart-fill', 'search', 'robot', 'gear'],
 		key = 'analysis_section',
 		orientation="horizontal"
 	)
@@ -39,8 +39,8 @@ def start() -> None :
 		General_analysis()
 	elif analysis_button == 'Manual charts' :
 		Manual_analysis()
-	elif analysis_button == 'Pandas Profiling' :
-		perform_pandas_profiling()
+	# elif analysis_button == 'Pandas Profiling' :
+	# 	perform_pandas_profiling()
 	
 
 ################################################################
