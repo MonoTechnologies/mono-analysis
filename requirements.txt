@@ -7,3 +7,4 @@ streamlit-pandas-profiling
 altair
 openpyxl
 google-cloud-firestore
+pydantic-settings
