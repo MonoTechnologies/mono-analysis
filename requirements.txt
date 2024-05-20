@@ -1,10 +1,9 @@
-streamlit>=1.28
+streamlit
 streamlit-feedback
 streamlit-extras
 streamlit-chat
 streamlit-option-menu
 streamlit-pandas-profiling
-ydata-profiling
 ydata-profiling
 altair
 
