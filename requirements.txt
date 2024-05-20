@@ -5,5 +5,5 @@ streamlit-chat
 streamlit-option-menu
 streamlit-pandas-profiling
 altair
-
+openpyxl
 google-cloud-firestore
