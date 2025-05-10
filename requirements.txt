@@ -4,7 +4,7 @@ streamlit-extras
 streamlit-chat
 streamlit-option-menu
 streamlit-pandas-profiling
-sklearn
+scikit-learn
 altair
 openpyxl
 google-cloud-firestore
