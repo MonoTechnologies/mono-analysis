@@ -36,8 +36,6 @@ def show_sidebar() :
         state['current_page'] = side_button
         st.rerun()
 
-    st.markdown('Made by Nuralizoda Abubakr')
-
 
 def show_pages() :
     ############################################

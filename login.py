@@ -52,37 +52,37 @@ def check_register() :
 			st.stop()
 
 		# Auth_code for registration (admins can create one) #
-		auth_code = st.text_input('Введите токен (админ должен предоставить его) :',
-								  placeholder='Токен меняется каждые 2 минуты !')
+		# auth_code = st.text_input('Введите токен (админ должен предоставить его) :',
+		# 						  placeholder='Токен меняется каждые 2 минуты !')
 
 		# Checking whether it has letters or not #
-		for i in auth_code :
-			if i < '0' or i > '9' :
-				st.error('Токен должен состоять только из чисел !')
-				st.stop()
+		# for i in auth_code :
+		# 	if i < '0' or i > '9' :
+		# 		st.error('Токен должен состоять только из чисел !')
+		# 		st.stop()
 
 
 		# Checking if the auth_code been created #
-		if len( str(get_doc('auth_code','self')['code']) ) == 0 and len(auth_code) > 0 :
-			st.error('Токен не был создан !')
-			st.stop()
+		# if len( str(get_doc('auth_code','self')['code']) ) == 0 and len(auth_code) > 0 :
+		# 	st.error('Токен не был создан !')
+		# 	st.stop()
 
 		
 		# Checking if the auth_code is valid #
-		if str(get_doc('auth_code','self')['code']) != auth_code and len(auth_code) > 0 :
-			st.error('Токены не совпадают !')
-			st.stop()
+		# if str(get_doc('auth_code','self')['code']) != auth_code and len(auth_code) > 0 :
+		# 	st.error('Токены не совпадают !')
+		# 	st.stop()
 
 		# Checking if auth_code is fresh (created at most 2 minute ago) #
-		try :
-			if time.time() - int(get_doc('auth_code','self')['time']) > 120 and len(auth_code) > 0 :
+		# try :
+		# 	if time.time() - int(get_doc('auth_code','self')['time']) > 120 and len(auth_code) > 0 :
 
-			   # Clearing the database #
-				change_doc( 'auth_code','self',{'code':'','time':'','type':''} )
-				st.error('Извините, срок токена истёк.')
-				st.stop()
-		except :
-			print('Empty auth_code.')
+		# 	   # Clearing the database #
+		# 		change_doc( 'auth_code','self',{'code':'','time':'','type':''} )
+		# 		st.error('Извините, срок токена истёк.')
+		# 		st.stop()
+		# except :
+		# 	print('Empty auth_code.')
 
 
 		# Making sure that the user understands the risks #
@@ -91,7 +91,7 @@ def check_register() :
 		# Creating Submit and Login buttons #
 		col1, col2 = st.columns(2)
 		with col1 :
-			if agreement == True and len(new_handle) > 0 and len(new_password) > 0 and new_password == repeat_password and len(auth_code) > 0 :
+			if agreement == True and len(new_handle) > 0 and len(new_password) > 0 and new_password == repeat_password :#and len(auth_code) > 0 :
 				submit_ = st.button('Продолжить')
 
 				if submit_ == True :
@@ -108,8 +108,8 @@ def check_register() :
 						change_doc( 'login_queries', new_doc_id('login_queries'),
 							{ 'type':'register', 'username':state['username'], 'time': current_time() } )
 
-						# Clearing auth_code #
-						change_doc( 'auth_code','self',{'code':'','time':'','type':''} )
+						# # Clearing auth_code #
+						# change_doc( 'auth_code','self',{'code':'','time':'','type':''} )
 
 						st.success('Успешно зарегистрирован !')
 						time.sleep(1)

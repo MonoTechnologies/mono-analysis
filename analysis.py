@@ -23,8 +23,8 @@ def start() -> None :
 	# Choosing analysis type #
 	analysis_button = option_menu(
 		menu_title = None,
-		options = ["General", "Manual charts", 'AI assistant'],
-		icons = ['bar-chart-fill', 'search', 'robot', 'gear'],
+		options = ["General", "Manual charting", 'Deep analytics', 'AI assistant'],
+		icons = ['bar-chart-fill', 'search','body-text' ,'robot', 'gear'],
 		key = 'analysis_section',
 		orientation="horizontal"
 	)
@@ -37,9 +37,9 @@ def start() -> None :
 	hr()
 	if analysis_button == 'General' :
 		General_analysis()
-	elif analysis_button == 'Manual charts' :
+	elif analysis_button == 'Manual charting' :
 		Manual_analysis()
-	# elif analysis_button == 'Pandas Profiling' :
+	# elif analysis_button == 'Deep analytics' :
 	# 	perform_pandas_profiling()
 	
 

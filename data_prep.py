@@ -141,7 +141,7 @@ class General_processing:
                 # batch_filtering_method: Choose by index
                 elif batch_filtering_method == 'Filter by index' :
                     hr()
-                    cols = st.columns(6)
+                    cols = st.columns(5)
                     with cols[0] :
                         lower_bound = st.number_input(
                             label='Left boundary',
